@@ -75,6 +75,8 @@ contract PreferencialVoting is Ownable {
     }
 
     function vote(uint256[] memory candidate_order) public {
+        // to be clear, the least prefered candidate is the 1st in the array
+        // example [ "least enjoyed candidate", "i dont mind this one", "my favourite candidate"]
         require(voting_state == VOTING_STATE.OPEN, "voting is not open");
         require(candidate_order.length == candidates.length);
         Voter storage current_voter = voters[msg.sender];

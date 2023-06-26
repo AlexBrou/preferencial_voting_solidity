@@ -1,2 +1,6 @@
-# preferencial_voting_solidity
-A Solidity (eth) Smart Contract that allows users to vote on candidates by preferrencial order
+# Preferencial Voting
+## a Solidity Smart Contract
+
+I created this with the intention of:
+- create a governmental voting solution that I personally believe in
+- practicing my Solidity skills
