@@ -2,7 +2,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract PreferencialVoting is Ownable {
+contract PreferentialVoting is Ownable {
     enum VOTING_STATE {
         NOT_STARTED,
         OPEN,
@@ -10,7 +10,7 @@ contract PreferencialVoting is Ownable {
     }
 
     struct Voter {
-        bool voted;
+        bool already_voted;
         bool authorized;
         string government_id;
         uint256[] candidate_order;
@@ -21,12 +21,11 @@ contract PreferencialVoting is Ownable {
         uint256 satisfaction_points;
     }
 
-    Candidate[] public candidates;
+    Candidate[] candidates;
 
     VOTING_STATE public voting_state;
 
     mapping(address => Voter) voters;
-    address[] voter_addresses;
 
     constructor(string[] memory candidate_names) {
         require(candidate_names.length > 0);
@@ -54,7 +53,7 @@ contract PreferencialVoting is Ownable {
         );
         uint256[] memory empty_array;
         voters[authorized_address] = Voter({
-            voted: false,
+            already_voted: false,
             authorized: true,
             government_id: government_id,
             candidate_order: empty_array
@@ -76,12 +75,12 @@ contract PreferencialVoting is Ownable {
 
     function vote(uint256[] memory candidate_order) public {
         // to be clear, the least prefered candidate is the 1st in the array
-        // example [ "least enjoyed candidate", "i dont mind this one", "my favourite candidate"]
+        // example [ "least enjoyed candidate", "i dont mind this one", "my favourite"]
         require(voting_state == VOTING_STATE.OPEN, "voting is not open");
         require(candidate_order.length == candidates.length);
         Voter storage current_voter = voters[msg.sender];
         require(current_voter.authorized, "unauthorized to vote");
-        require(current_voter.voted == false, "already voted");
+        require(current_voter.already_voted == false, "already voted");
         for (
             uint256 vote_index = 0;
             vote_index < candidate_order.length;
@@ -93,12 +92,12 @@ contract PreferencialVoting is Ownable {
             );
         }
         current_voter.candidate_order = candidate_order;
-        current_voter.voted = true;
+        current_voter.already_voted = true;
         give_voting_points(candidate_order);
     }
 
     function check_my_vote() public view returns (uint256[] memory) {
-        require(voters[msg.sender].voted, "you have not voted yet");
+        require(voters[msg.sender].already_voted, "you have not voted yet");
         return voters[msg.sender].candidate_order;
     }
 
@@ -107,7 +106,21 @@ contract PreferencialVoting is Ownable {
         voting_state = VOTING_STATE.FINISHED;
     }
 
-    function get_results() public view onlyOwner returns (Candidate[] memory) {
+    function get_candidate_names() public view returns (string[] memory) {
+        string[] memory candidate_names = new string[](candidates.length);
+        for (
+            uint256 candidate_index = 0;
+            candidate_index < candidates.length;
+            candidate_index++
+        ) {
+            candidate_names[candidate_index] = (
+                candidates[candidate_index].name
+            );
+        }
+        return candidate_names;
+    }
+
+    function get_results() public view returns (Candidate[] memory) {
         require(
             voting_state == VOTING_STATE.FINISHED,
             "voting is not finished"

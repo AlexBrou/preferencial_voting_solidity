@@ -1,4 +1,4 @@
-# Preferencial Voting
+# Preferential Voting
 ### a Solidity Smart Contract
 
 I created this with the intention of:
